@@ -205,9 +205,6 @@ INLINE static int star_formation_is_star_forming_Z_dep(
     const struct unit_system* us, const struct cooling_function_data* cooling,
     const struct entropy_floor_properties* entropy_floor_props) {
 
-  /* Immediate exit if the particle is still a cow. */
-  if (p->is_cow) return 0;
-
   /* Physical density of the particle */
   const double physical_density = hydro_get_physical_density(p, cosmo);
 
@@ -310,7 +307,7 @@ INLINE static int star_formation_is_star_forming_subgrid(
  * @param entropy_floor_props The entropy floor assumed in this run.
  */
 INLINE static int star_formation_is_star_forming(
-    const struct part* p, const struct xpart* xp,
+    struct part* p, const struct xpart* xp,
     const struct star_formation* starform, const struct phys_const* phys_const,
     const struct cosmology* cosmo, const struct hydro_props* hydro_props,
     const struct unit_system* us, const struct cooling_function_data* cooling,
@@ -325,6 +322,24 @@ INLINE static int star_formation_is_star_forming(
   const double physical_density = hydro_get_physical_density(p, cosmo);
 
   /* Deside whether we should form stars or not */
+
+  /* Is this particle at a temperature where the cows have become a plasma? */
+  if (p->cooling_data.subgrid_temp > 10000) {
+    p->is_cow = 0;
+  }
+
+  /* Have the cows reached sufficient density to no longer be solid cows? */
+  double cow_density =
+    0.57272727 / us->UnitMass_in_cgs *
+    (us->UnitLength_in_cgs * us->UnitLength_in_cgs * us->UnitLength_in_cgs);
+  message("cow_density=%.2f physical_density=%.2f",
+          cow_density, physical_density);
+  if (physical_density > (2 * cow_density)) {
+    p->is_cow = 0;
+  }
+
+  /* Immediate exit if the particle is still a cow. */
+  if (p->is_cow) return 0;
 
   /* First, deterime if we have the correct over density */
   if (physical_density < rho_mean_b_times_min_over_den) return 0;
