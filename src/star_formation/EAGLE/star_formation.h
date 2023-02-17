@@ -205,6 +205,9 @@ INLINE static int star_formation_is_star_forming_Z_dep(
     const struct unit_system* us, const struct cooling_function_data* cooling,
     const struct entropy_floor_properties* entropy_floor_props) {
 
+  /* Immediate exit if the particle is still a cow. */
+  if (p->is_cow) return 0;
+
   /* Physical density of the particle */
   const double physical_density = hydro_get_physical_density(p, cosmo);
 
