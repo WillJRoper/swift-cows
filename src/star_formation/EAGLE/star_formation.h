@@ -330,7 +330,7 @@ INLINE static int star_formation_is_star_forming(
 
   /* Have the cows reached sufficient density to no longer be solid cows? */
   double cow_density =
-    0.57272727 * units_cgs_conversion_factor(us, UNIT_CONV_DENSITY);
+    0.57272727 / units_cgs_conversion_factor(us, UNIT_CONV_DENSITY);
   message("cow_density=%.2f physical_density=%.2f conv=%.2f temp=%.2f",
           cow_density, physical_density, units_cgs_conversion_factor(us, UNIT_CONV_DENSITY), p->cooling_data.subgrid_temp);
   if (physical_density > (2 * cow_density)) {
