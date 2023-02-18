@@ -165,8 +165,8 @@ __attribute__((always_inline)) INLINE static void chemistry_first_init_part(
     const struct chemistry_global_data* data, struct part* restrict p,
     struct xpart* restrict xp) {
 
-  /* Set up the particle as a cow. */
-  p->is_cow = 1;
+  /* /\* Set up the particle as a cow. *\/ */
+  /* p->is_cow = 1; */
 
   /* Initialize mass fractions for total metals and each metal individually */
   if (data->initial_metal_mass_fraction_total != -1) {
