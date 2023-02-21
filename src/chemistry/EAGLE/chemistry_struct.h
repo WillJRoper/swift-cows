@@ -56,7 +56,7 @@ struct chemistry_global_data {
   float cow_fraction;
 
   /*! Inverse of the fraction of baryons comprised of cows. */
-  intt inv_cow_fraction;
+  int inv_cow_fraction;
 };
 
 /**
