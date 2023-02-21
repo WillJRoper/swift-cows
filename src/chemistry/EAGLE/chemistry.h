@@ -168,16 +168,33 @@ __attribute__((always_inline)) INLINE static void chemistry_first_init_part(
   /* /\* Set up the particle as a cow. *\/ */
   /* p->is_cow = 1; */
 
-  /* Initialize mass fractions for total metals and each metal individually */
-  if (data->initial_metal_mass_fraction_total != -1) {
-    p->chemistry_data.metal_mass_fraction_total =
+  /* Intialise the particle as a cow or normal gas. */
+  if (p->id % ((int) 1 / data->cow_fraction) == 0) {
+    
+    /* Initialize mass fractions for total metals and each metal individually */
+    if (data->initial_metal_mass_fraction_total != -1) {
+      p->chemistry_data.metal_mass_fraction_total =
+        data->cow_initial_metal_mass_fraction_total;
+
+      for (int elem = 0; elem < chemistry_element_count; ++elem) {
+        p->chemistry_data.metal_mass_fraction[elem] =
+          data->cow_initial_metal_mass_fraction[elem];
+      }
+    }
+  } else {
+
+    /* Initialize mass fractions for total metals and each metal individually */
+    if (data->initial_metal_mass_fraction_total != -1) {
+      p->chemistry_data.metal_mass_fraction_total =
         data->initial_metal_mass_fraction_total;
 
-    for (int elem = 0; elem < chemistry_element_count; ++elem) {
-      p->chemistry_data.metal_mass_fraction[elem] =
+      for (int elem = 0; elem < chemistry_element_count; ++elem) {
+        p->chemistry_data.metal_mass_fraction[elem] =
           data->initial_metal_mass_fraction[elem];
+      }
     }
   }
+  
   chemistry_init_part(p, data);
 }
 
@@ -229,6 +246,14 @@ static INLINE void chemistry_init_backend(struct swift_params* parameter_file,
   data->initial_metal_mass_fraction_total = parser_get_opt_param_float(
       parameter_file, "EAGLEChemistry:init_abundance_metal", -1);
 
+  /* Read the total metallicity */
+  data->cow_fraction = parser_get_opt_param_float(
+      parameter_file, "COWSHEDChemistry:bovine_fraction", -1);
+  if (data->cow_fraction > 0)
+    data->inv_cow_fraction = 1 / data->cow_fraction;
+  data->cow_initial_metal_mass_fraction_total = parser_get_opt_param_float(
+      parameter_file, "COWSHEDChemistry:init_abundance_metal", -1);
+
   if (data->initial_metal_mass_fraction_total != -1) {
     /* Read the individual mass fractions */
     for (int elem = 0; elem < chemistry_element_count; ++elem) {
@@ -269,6 +294,54 @@ static INLINE void chemistry_init_backend(struct swift_params* parameter_file,
     total_frac = 0.f;
     for (int elem = 0; elem < chemistry_element_count; ++elem) {
       total_frac += data->initial_metal_mass_fraction[elem];
+    }
+
+    if (total_frac > 1.02)
+      error("The abundances provided seem odd! \\sum elements (%f) > 1",
+            total_frac);
+  }
+  
+  if (data->cow_initial_metal_mass_fraction_total != -1) {
+    /* Read the individual mass fractions */
+    for (int elem = 0; elem < chemistry_element_count; ++elem) {
+      char buffer[50];
+      sprintf(buffer, "COWSHEDChemistry:init_abundance_%s",
+              chemistry_get_element_name((enum chemistry_element)elem));
+
+      data->cow_initial_metal_mass_fraction[elem] =
+          parser_get_param_float(parameter_file, buffer);
+    }
+
+    /* Let's check that things make sense (broadly) */
+
+    /* H + He + Z should be ~1 */
+    float total_frac =
+      data->cow_initial_metal_mass_fraction[chemistry_element_H] +
+      data->cow_initial_metal_mass_fraction[chemistry_element_He] +
+      data->cow_initial_metal_mass_fraction_total;
+
+    if (total_frac < 0.98 || total_frac > 1.02)
+      error("The abundances provided seem odd! H + He + Z = %f =/= 1.",
+            total_frac);
+
+    /* Sum of metal elements should be <= Z */
+    total_frac = 0.f;
+    for (int elem = 0; elem < chemistry_element_count; ++elem) {
+      if (elem != chemistry_element_H && elem != chemistry_element_He) {
+        total_frac += data->cow_initial_metal_mass_fraction[elem];
+      }
+    }
+
+    if (total_frac > 1.02 * data->cow_initial_metal_mass_fraction_total)
+      error(
+          "The abundances provided seem odd! \\sum metal elements (%f) > Z "
+          "(%f)",
+          total_frac, data->cow_initial_metal_mass_fraction_total);
+
+    /* Sum of all elements should be <= 1 */
+    total_frac = 0.f;
+    for (int elem = 0; elem < chemistry_element_count; ++elem) {
+      total_frac += data->cow_initial_metal_mass_fraction[elem];
     }
 
     if (total_frac > 1.02)

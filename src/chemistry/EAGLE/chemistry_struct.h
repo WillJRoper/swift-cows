@@ -45,6 +45,18 @@ struct chemistry_global_data {
 
   /*! Fraction of the particle mass in *all* metals at the start of the run */
   float initial_metal_mass_fraction_total;
+
+  /*! Fraction of the cow particle mass in given elements at the start of the run */
+  float cow_initial_metal_mass_fraction[chemistry_element_count];
+
+  /*! Fraction of the cow particle mass in *all* metals at the start of the run */
+  float cow_initial_metal_mass_fraction_total;
+
+  /*! Fraction of baryons comprised of cows. */
+  float cow_fraction;
+
+  /*! Inverse of the fraction of baryons comprised of cows. */
+  intt inv_cow_fraction;
 };
 
 /**

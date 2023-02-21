@@ -323,21 +323,6 @@ INLINE static int star_formation_is_star_forming(
 
   /* Deside whether we should form stars or not */
 
-  /* /\* Is this particle at a temperature where the cows have become a plasma? *\/ */
-  /* if (p->cooling_data.subgrid_temp > 10000) { */
-  /*   p->is_cow = 0; */
-  /* } */
-
-  /* /\* Have the cows reached sufficient density to no longer be solid cows? *\/ */
-  /* double cow_density = */
-  /*   0.57272727 / units_cgs_conversion_factor(us, UNIT_CONV_DENSITY); */
-  /* if (physical_density > (2 * cow_density)) { */
-  /*   p->is_cow = 0; */
-  /* } */
-
-  /* /\* Immediate exit if the particle is still a cow. *\/ */
-  /* if (p->is_cow) return 0; */
-
   /* First, deterime if we have the correct over density */
   if (physical_density < rho_mean_b_times_min_over_den) return 0;
 
