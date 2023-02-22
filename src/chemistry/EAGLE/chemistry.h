@@ -169,7 +169,7 @@ __attribute__((always_inline)) INLINE static void chemistry_first_init_part(
   /* p->is_cow = 1; */
 
   /* Intialise the particle as a cow or normal gas. */
-  if (p->id % data->inv_cow_fraction == 0) {
+  if (data->cow_fraction > 0 && p->id % data->inv_cow_fraction == 0) {
     
     /* Initialize mass fractions for total metals and each metal individually */
     if (data->initial_metal_mass_fraction_total != -1) {
